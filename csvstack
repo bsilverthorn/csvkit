@@ -11,7 +11,7 @@ class CSVStack(CSVKitUtility):
     override_flags = 'f'
 
     def add_arguments(self):
-        self.argparser.add_argument('files', metavar="FILES", nargs='+', type=CSVFileType())
+        self.argparser.add_argument('files', metavar="FILES", nargs='+')
         self.argparser.add_argument('-g', '--groups', dest='groups',
                             help='A comma-seperated list of values to add as "grouping factors", one for each CSV being stacked. These will be added to the stacked CSV as a new column. You may specify a name for the grouping column using the -n flag.')
         self.argparser.add_argument('-n', '--group-name', dest='group_name',
@@ -24,7 +24,7 @@ class CSVStack(CSVKitUtility):
             sys.exit('You must specify at least two files to stack.')
 
         if self.args.group_by_filenames:
-            groups = [os.path.split(f.name)[1] for f in self.args.files] 
+            groups = [os.path.split(path)[1] for path in self.args.files]
         elif self.args.groups:
             groups = self.args.groups.split(',')
 
@@ -35,8 +35,9 @@ class CSVStack(CSVKitUtility):
 
         output = CSVKitWriter(sys.stdout, **self.writer_kwargs)
 
-        for i, f in enumerate(self.args.files):
-            rows = CSVKitReader(f, **self.reader_kwargs)
+        for i, path in enumerate(self.args.files):
+            csv_file = CSVFileType()(path)
+            rows = CSVKitReader(csv_file, **self.reader_kwargs)
             headers = rows.next()
 
             if i == 0:
